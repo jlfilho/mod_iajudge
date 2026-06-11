@@ -1,0 +1,101 @@
+{{!
+    Main view template for mod_iajudge.
+    Displays the programming interface for students or the submission list for teachers.
+
+    @package     mod_iajudge
+    @copyright   2026 IA Judge Contributors
+    @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+}}
+<div class="mod_iajudge_view_container">
+    {{#isgrader}}
+        {{! Teacher Dashboard }}
+        {{> mod_iajudge/submissions_list }}
+    {{/isgrader}}
+
+    {{^isgrader}}
+        {{! Student Submission Form }}
+        {{#cansubmit}}
+            <div class="card mb-4 ia-judge-editor-card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fa fa-code mr-2"></i>{{#str}} submit_code, mod_iajudge {{/str}}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="ia-judge-submit-error" class="alert alert-danger d-none" role="alert" aria-live="assertive"></div>
+                    {{#attemptsremaining}}
+                        <div class="alert alert-info py-2">
+                            <i class="fa fa-info-circle mr-1"></i>
+                            {{#str}} attempts_remaining, mod_iajudge, {{attemptsremaining}} {{/str}}
+                        </div>
+                    {{/attemptsremaining}}
+
+                    <!-- The Submission Form HTML -->
+                    <form action="view.php" method="post" id="iajudge_submission_form" class="mb-0">
+                        <input type="hidden" name="id" value="{{cmid}}">
+                        <input type="hidden" name="sesskey" value="{{sesskey}}">
+                        <input type="hidden" name="action" value="submit">
+                        <input type="hidden" name="code" id="id_code" value="">
+
+                        <div class="form-group row">
+                            <label for="id_language" class="col-sm-2 col-form-label font-weight-bold">
+                                {{#str}} select_language, mod_iajudge {{/str}}
+                            </label>
+                            <div class="col-sm-4">
+                                <select name="language" id="id_language" class="form-control custom-select">
+                                    {{#allowedlangs}}
+                                        <option value="{{key}}">{{label}}</option>
+                                    {{/allowedlangs}}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Monaco Editor Element -->
+                        <div class="form-group">
+                            <label class="font-weight-bold">{{#str}} code_editor, mod_iajudge {{/str}}</label>
+                            <div id="iajudge_editor" style="height: 480px; border: 1px solid #dee2e6; border-radius: 4px;" class="shadow-sm"></div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" id="iajudge_submit_btn" class="btn btn-primary btn-lg shadow-sm">
+                                <span class="spinner-border spinner-border-sm mr-2 d-none ia-judge-submit-spinner" role="status" aria-hidden="true"></span>
+                                <i class="fa fa-paper-plane mr-2 ia-judge-submit-icon"></i>
+                                <span class="ia-judge-submit-label">{{#str}} submit_code, mod_iajudge {{/str}}</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        {{/cansubmit}}
+
+        {{^cansubmit}}
+            <div class="alert alert-warning mb-4">
+                <i class="fa fa-exclamation-triangle mr-2"></i>{{#str}} no_attempts_remaining, mod_iajudge {{/str}}
+            </div>
+        {{/cansubmit}}
+
+        {{! Student's Past Attempts }}
+        <div class="ia-judge-history-container mt-4">
+            <h4 class="mb-3 font-weight-bold text-dark border-bottom pb-2">
+                <i class="fa fa-history mr-2"></i>{{#str}} your_attempts, mod_iajudge {{/str}}
+            </h4>
+            {{#mysubmissions.0}}
+                <div class="submissions-list">
+                    {{#mysubmissions}}
+                        <div id="ia-judge-submission-{{id}}">
+                            {{> mod_iajudge/submission_result }}
+                        </div>
+                    {{/mysubmissions}}
+                </div>
+            {{/mysubmissions.0}}
+            {{^mysubmissions}}
+                <div class="card bg-light border-dashed p-5 text-center text-muted">
+                    <i class="fa fa-code-fork fa-3x mb-3"></i>
+                    <h5>{{#str}} no_attempts_yet, mod_iajudge {{/str}}</h5>
+                    <p class="mb-0">{{#str}} submit_first_attempt, mod_iajudge {{/str}}</p>
+                </div>
+            {{/mysubmissions}}
+        </div>
+    {{/isgrader}}
+</div>

@@ -1,0 +1,67 @@
+{{!
+    Submission result template.
+    Displays the details, status, grade and feedback of a single code submission.
+
+    @package     mod_iajudge
+    @copyright   2026 IA Judge Contributors
+    @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+}}
+<div class="card mb-3 ia-judge-submission-card" id="ia-judge-submission-card-{{id}}">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="card-title mb-0 d-inline-block">
+                {{#str}} attempt, mod_iajudge {{/str}} #{{id}}
+            </h5>
+            <span class="text-muted ml-2">({{timecreated}})</span>
+        </div>
+        <div>
+            <span class="badge badge-info text-uppercase mr-2">{{language}}</span>
+            <span id="ia-judge-status-badge-{{id}}" class="badge {{#isgraded}}badge-success{{/isgraded}}{{#ispending}}badge-warning{{/ispending}}{{#iserror}}badge-danger{{/iserror}} text-uppercase">
+                {{#isgraded}}{{#str}} status_graded, mod_iajudge {{/str}}{{/isgraded}}
+                {{#ispending}}{{#str}} status_pending, mod_iajudge {{/str}}{{/ispending}}
+                {{#iserror}}{{#str}} status_error, mod_iajudge {{/str}}{{/iserror}}
+            </span>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-7">
+                <h6 class="font-weight-bold text-secondary">{{#str}} submitted_code, mod_iajudge {{/str}}</h6>
+                <pre class="bg-light p-3 rounded border border-secondary" style="max-height: 350px; overflow-y: auto;"><code>{{code}}</code></pre>
+            </div>
+            <div class="col-md-5 d-flex flex-column">
+                {{#isgraded}}
+                    <div class="ia-judge-score-container mb-3 p-3 bg-light border rounded text-center">
+                        <h6 class="text-uppercase text-muted font-weight-bold mb-1">{{#str}} your_score, mod_iajudge {{/str}}</h6>
+                        <span class="display-4 font-weight-bold text-success">{{score}}</span>
+                        <span class="text-muted">/ 100</span>
+                    </div>
+                    <div class="ia-judge-feedback-container flex-grow-1 p-3 bg-light border rounded">
+                        <h6 class="font-weight-bold text-secondary mb-2">
+                            <i class="fa fa-commenting-o mr-1"></i>{{#str}} ai_feedback, mod_iajudge {{/str}}
+                        </h6>
+                        <div class="ai-feedback-text text-justify" style="white-space: pre-wrap;">{{feedback}}</div>
+                    </div>
+                {{/isgraded}}
+
+                {{#ispending}}
+                    <div class="d-flex flex-column align-items-center justify-content-center p-5 border rounded bg-light flex-grow-1 text-center">
+                        <div class="spinner-border text-warning mb-3" style="width: 3rem; height: 3rem;" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                        <h5 class="text-warning font-weight-bold">{{#str}} status_processing, mod_iajudge {{/str}}</h5>
+                        <p class="text-muted mb-0">{{#str}} processing_desc, mod_iajudge {{/str}}</p>
+                    </div>
+                {{/ispending}}
+
+                {{#iserror}}
+                    <div class="d-flex flex-column align-items-center justify-content-center p-5 border rounded bg-light flex-grow-1 text-center">
+                        <i class="fa fa-exclamation-triangle text-danger fa-3x mb-3"></i>
+                        <h5 class="text-danger font-weight-bold">{{#str}} status_error, mod_iajudge {{/str}}</h5>
+                        <p class="text-muted mb-0">{{#str}} error_desc, mod_iajudge {{/str}}</p>
+                    </div>
+                {{/iserror}}
+            </div>
+        </div>
+    </div>
+</div>

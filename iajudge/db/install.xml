@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="mod/iajudge/db" VERSION="20260611" COMMENT="XMLDB file for mod_iajudge"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+
+    <!--
+        Main activity instance table.
+        One row per iajudge activity added to a course.
+    -->
+    <TABLE NAME="iajudge" COMMENT="Stores each iajudge activity instance">
+      <FIELDS>
+        <FIELD NAME="id"                TYPE="int"     LENGTH="10" NOTNULL="true"  SEQUENCE="true"  COMMENT="Primary key"/>
+        <FIELD NAME="course"            TYPE="int"     LENGTH="10" NOTNULL="true"  SEQUENCE="false" COMMENT="Course this activity belongs to (FK mdl_course.id)"/>
+        <FIELD NAME="name"              TYPE="char"    LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Activity name"/>
+        <FIELD NAME="intro"             TYPE="text"                NOTNULL="false" SEQUENCE="false" COMMENT="Problem statement (HTML from Atto/TinyMCE)"/>
+        <FIELD NAME="introformat"       TYPE="int"     LENGTH="4"  NOTNULL="true"  DEFAULT="0"      SEQUENCE="false" COMMENT="Format of the intro field"/>
+        <FIELD NAME="rubric_prompt"     TYPE="text"                NOTNULL="false" SEQUENCE="false" COMMENT="Correction rubric/instructions for the AI evaluator"/>
+        <FIELD NAME="allowed_languages" TYPE="char"    LENGTH="255" NOTNULL="true" DEFAULT="python,c,java,javascript" SEQUENCE="false" COMMENT="CSV list of allowed programming languages"/>
+        <FIELD NAME="max_attempts"      TYPE="int"     LENGTH="10" NOTNULL="true"  DEFAULT="0"      SEQUENCE="false" COMMENT="Maximum submission attempts per student (0 = unlimited)"/>
+        <FIELD NAME="timecreated"       TYPE="int"     LENGTH="10" NOTNULL="true"  DEFAULT="0"      SEQUENCE="false" COMMENT="Unix timestamp of creation"/>
+        <FIELD NAME="timemodified"      TYPE="int"     LENGTH="10" NOTNULL="true"  DEFAULT="0"      SEQUENCE="false" COMMENT="Unix timestamp of last modification"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_course" TYPE="foreign" FIELDS="course" REFTABLE="course" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="idx_course" UNIQUE="false" FIELDS="course"/>
+      </INDEXES>
+    </TABLE>
+
+    <!--
+        Student submissions table.
+        One row per code submission attempt.
+    -->
+    <TABLE NAME="iajudge_submission" COMMENT="Stores student code submissions">
+      <FIELDS>
+        <FIELD NAME="id"          TYPE="int"  LENGTH="10"  NOTNULL="true"  SEQUENCE="true"  COMMENT="Primary key"/>
+        <FIELD NAME="iajudgeid"  TYPE="int"  LENGTH="10"  NOTNULL="true"  SEQUENCE="false" COMMENT="FK to iajudge.id"/>
+        <FIELD NAME="userid"      TYPE="int"  LENGTH="10"  NOTNULL="true"  SEQUENCE="false" COMMENT="FK to mdl_user.id"/>
+        <FIELD NAME="language"    TYPE="char" LENGTH="20"  NOTNULL="true"  SEQUENCE="false" COMMENT="Programming language chosen by the student (python|c|java|javascript)"/>
+        <FIELD NAME="code"        TYPE="text"              NOTNULL="false" SEQUENCE="false" COMMENT="Source code submitted by the student"/>
+        <FIELD NAME="status"      TYPE="char" LENGTH="20"  NOTNULL="true"  DEFAULT="pending" SEQUENCE="false" COMMENT="Evaluation status: pending|processing|graded|error"/>
+        <FIELD NAME="timecreated" TYPE="int"  LENGTH="10"  NOTNULL="true"  DEFAULT="0"      SEQUENCE="false" COMMENT="Unix timestamp of submission"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary"           TYPE="primary"  FIELDS="id"/>
+        <KEY NAME="fk_iajudgeid"     TYPE="foreign"  FIELDS="iajudgeid" REFTABLE="iajudge"        REFFIELDS="id"/>
+        <KEY NAME="fk_userid"         TYPE="foreign"  FIELDS="userid"     REFTABLE="user"            REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="idx_iajudgeid_userid" UNIQUE="false" FIELDS="iajudgeid, userid"/>
+        <INDEX NAME="idx_status"            UNIQUE="false" FIELDS="status"/>
+      </INDEXES>
+    </TABLE>
+
+    <!--
+        AI evaluation results table.
+        One row per evaluated submission.
+    -->
+    <TABLE NAME="iajudge_grade" COMMENT="Stores AI evaluation results for each submission">
+      <FIELDS>
+        <FIELD NAME="id"           TYPE="int"     LENGTH="10"   NOTNULL="true"  SEQUENCE="true"  COMMENT="Primary key"/>
+        <FIELD NAME="submissionid" TYPE="int"     LENGTH="10"   NOTNULL="true"  SEQUENCE="false" COMMENT="FK to iajudge_submission.id"/>
+        <FIELD NAME="score"        TYPE="number"  LENGTH="5"    NOTNULL="true"  DEFAULT="0" DECIMALS="2" SEQUENCE="false" COMMENT="Numeric score 0–100 returned by the AI"/>
+        <FIELD NAME="feedback"     TYPE="text"                  NOTNULL="false" SEQUENCE="false" COMMENT="Pedagogical feedback text (plain text or Markdown) returned by the AI"/>
+        <FIELD NAME="raw_response" TYPE="text"                  NOTNULL="false" SEQUENCE="false" COMMENT="Raw JSON string returned by the AI provider for debugging"/>
+        <FIELD NAME="timecreated"  TYPE="int"     LENGTH="10"   NOTNULL="true"  DEFAULT="0"      SEQUENCE="false" COMMENT="Unix timestamp when the grade was created"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary"          TYPE="primary"  FIELDS="id"/>
+        <KEY NAME="fk_submissionid"  TYPE="foreign"  FIELDS="submissionid" REFTABLE="iajudge_submission" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="idx_submissionid" UNIQUE="true" FIELDS="submissionid" COMMENT="One grade per submission"/>
+      </INDEXES>
+    </TABLE>
+
+  </TABLES>
+</XMLDB>

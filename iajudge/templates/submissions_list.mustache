@@ -1,0 +1,102 @@
+{{!
+    Submissions list template (for teachers).
+    Renders all student attempts for the activity in a table with expandable details.
+
+    @package     mod_iajudge
+    @copyright   2026 IA Judge Contributors
+    @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+}}
+<div class="card ia-judge-teacher-dashboard mt-3">
+    <div class="card-header bg-dark text-white">
+        <h5 class="card-title mb-0">
+            <i class="fa fa-dashboard mr-2"></i>{{#str}} teacher_dashboard, mod_iajudge {{/str}}
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        {{#allsubmissions.0}}
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">{{#str}} student, mod_iajudge {{/str}}</th>
+                            <th scope="col">{{#str}} date, mod_iajudge {{/str}}</th>
+                            <th scope="col">{{#str}} language, mod_iajudge {{/str}}</th>
+                            <th scope="col" class="text-center">{{#str}} status, mod_iajudge {{/str}}</th>
+                            <th scope="col" class="text-center">{{#str}} score, mod_iajudge {{/str}}</th>
+                            <th scope="col" class="text-right">{{#str}} actions, mod_iajudge {{/str}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#allsubmissions}}
+                            <tr id="ia-judge-submission-row-{{id}}">
+                                <td>{{id}}</td>
+                                <td><strong>{{fullname}}</strong></td>
+                                <td>{{timecreated}}</td>
+                                <td><span class="badge badge-secondary text-uppercase">{{language}}</span></td>
+                                <td class="text-center">
+                                    <span class="badge {{#isgraded}}badge-success{{/isgraded}}{{#ispending}}badge-warning{{/ispending}}{{#iserror}}badge-danger{{/iserror}} text-uppercase">
+                                        {{#isgraded}}{{#str}} status_graded, mod_iajudge {{/str}}{{/isgraded}}
+                                        {{#ispending}}{{#str}} status_pending, mod_iajudge {{/str}}{{/ispending}}
+                                        {{#iserror}}{{#str}} status_error, mod_iajudge {{/str}}{{/iserror}}
+                                    </span>
+                                </td>
+                                <td class="text-center font-weight-bold {{#isgraded}}text-success{{/isgraded}}">
+                                    {{score}} {{#isgraded}}/ 100{{/isgraded}}
+                                </td>
+                                <td class="text-right">
+                                    <button class="btn btn-sm btn-outline-primary" type="button" data-toggle="collapse" data-target="#ia-judge-details-{{id}}" aria-expanded="false" aria-controls="ia-judge-details-{{id}}">
+                                        <i class="fa fa-eye mr-1"></i>{{#str}} view_details, mod_iajudge {{/str}}
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="collapse-row">
+                                <td colspan="7" class="p-0 border-top-0">
+                                    <div class="collapse bg-light border-bottom" id="ia-judge-details-{{id}}">
+                                        <div class="p-4">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <h6 class="font-weight-bold text-secondary">{{#str}} submitted_code, mod_iajudge {{/str}}</h6>
+                                                    <pre class="bg-white p-3 rounded border" style="max-height: 400px; overflow-y: auto;"><code>{{code}}</code></pre>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <h6 class="font-weight-bold text-secondary">{{#str}} ai_feedback, mod_iajudge {{/str}}</h6>
+                                                    {{#isgraded}}
+                                                        <div class="p-3 bg-white border rounded">
+                                                            <div class="display-4 font-weight-bold text-success text-center mb-3">
+                                                                {{score}}<span class="h3 font-weight-normal text-muted"> / 100</span>
+                                                            </div>
+                                                            <div class="ai-feedback-text" style="white-space: pre-wrap;">{{feedback}}</div>
+                                                        </div>
+                                                    {{/isgraded}}
+                                                    {{#ispending}}
+                                                        <div class="p-4 bg-white border rounded text-center text-warning">
+                                                            <i class="fa fa-spinner fa-spin fa-2x mb-2"></i>
+                                                            <p class="mb-0 font-weight-bold">{{#str}} status_processing, mod_iajudge {{/str}}</p>
+                                                        </div>
+                                                    {{/ispending}}
+                                                    {{#iserror}}
+                                                        <div class="p-4 bg-white border rounded text-center text-danger">
+                                                            <i class="fa fa-exclamation-triangle fa-2x mb-2"></i>
+                                                            <p class="mb-0 font-weight-bold">{{#str}} status_error, mod_iajudge {{/str}}</p>
+                                                        </div>
+                                                    {{/iserror}}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {{/allsubmissions}}
+                    </tbody>
+                </table>
+            </div>
+        {{/allsubmissions.0}}
+        {{^allsubmissions}}
+            <div class="p-5 text-center text-muted">
+                <i class="fa fa-folder-open-o fa-3x mb-3"></i>
+                <h5>{{#str}} no_submissions_yet, mod_iajudge {{/str}}</h5>
+            </div>
+        {{/allsubmissions}}
+    </div>
+</div>
