@@ -27,6 +27,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+global $CFG;
+require_once($CFG->dirroot . '/mod/iajudge/locallib.php');
+
 // ---------------------------------------------------------------------------
 // Moodle core API callbacks
 // ---------------------------------------------------------------------------
@@ -70,12 +73,16 @@ function iajudge_supports(string $feature): mixed {
 function iajudge_add_instance(stdClass $data, ?mod_iajudge_mod_form $mform = null): int {
     global $DB;
 
+    $selectedquestions = $data->selected_questions ?? [];
+    unset($data->selected_questions);
+
     $data->timecreated  = time();
     $data->timemodified = time();
 
-    // Serialize the allowed_languages array (checkboxgroup) to a CSV string.
+    // Serialize the allowed_languages array (checkboxgroup) to a CSV string of keys.
     if (!empty($data->allowed_languages) && is_array($data->allowed_languages)) {
-        $data->allowed_languages = implode(',', array_filter($data->allowed_languages));
+        $selected = array_keys(array_filter($data->allowed_languages));
+        $data->allowed_languages = !empty($selected) ? implode(',', $selected) : 'python,c,java,javascript';
     } else {
         $data->allowed_languages = 'python,c,java,javascript';
     }
@@ -83,6 +90,7 @@ function iajudge_add_instance(stdClass $data, ?mod_iajudge_mod_form $mform = nul
     $data->id = $DB->insert_record('iajudge', $data);
 
     iajudge_grade_item_update($data);
+    iajudge_sync_activity_questions($data->id, $selectedquestions);
 
     return $data->id;
 }
@@ -100,12 +108,16 @@ function iajudge_add_instance(stdClass $data, ?mod_iajudge_mod_form $mform = nul
 function iajudge_update_instance(stdClass $data, ?mod_iajudge_mod_form $mform = null): bool {
     global $DB;
 
+    $selectedquestions = $data->selected_questions ?? [];
+    unset($data->selected_questions);
+
     $data->timemodified = time();
     $data->id = $data->instance;
 
-    // Serialize the allowed_languages array (checkboxgroup) to a CSV string.
+    // Serialize the allowed_languages array (checkboxgroup) to a CSV string of keys.
     if (!empty($data->allowed_languages) && is_array($data->allowed_languages)) {
-        $data->allowed_languages = implode(',', array_filter($data->allowed_languages));
+        $selected = array_keys(array_filter($data->allowed_languages));
+        $data->allowed_languages = !empty($selected) ? implode(',', $selected) : 'python,c,java,javascript';
     } else {
         $data->allowed_languages = 'python,c,java,javascript';
     }
@@ -113,6 +125,7 @@ function iajudge_update_instance(stdClass $data, ?mod_iajudge_mod_form $mform = 
     $result = $DB->update_record('iajudge', $data);
 
     iajudge_grade_item_update($data);
+    iajudge_sync_activity_questions($data->id, $selectedquestions);
 
     return $result;
 }
@@ -139,6 +152,9 @@ function iajudge_delete_instance(int $id): bool {
 
     // Delete all associated submissions.
     $DB->delete_records('iajudge_submission', ['iajudgeid' => $id]);
+
+    // Delete all linked question bank references.
+    $DB->delete_records('iajudge_question', ['iajudgeid' => $id]);
 
     // Delete the activity instance itself.
     $DB->delete_records('iajudge', ['id' => $id]);

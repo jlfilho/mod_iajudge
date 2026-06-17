@@ -15,17 +15,30 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Plugin version and other meta-data are defined here.
+ * Privacy provider for qtype_codejudge.
  *
- * @package     mod_iajudge
+ * @package     qtype_codejudge
  * @copyright   2026 IA Judge Contributors
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace qtype_codejudge\privacy;
+
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component  = 'mod_iajudge';
-$plugin->version    = 2026061200;
-$plugin->requires   = 2026042000; // Moodle 5.2+.
-$plugin->maturity   = MATURITY_BETA;
-$plugin->release    = '0.2.1';
+use core_privacy\local\metadata\null_provider;
+
+/**
+ * The codejudge question type does not store personal data beyond core question records.
+ */
+class provider implements null_provider {
+
+    /**
+     * Returns the reason why this plugin stores no personal data.
+     *
+     * @return string
+     */
+    public static function get_reason(): string {
+        return 'privacy:metadata';
+    }
+}

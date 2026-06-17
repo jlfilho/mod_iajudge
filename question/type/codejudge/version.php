@@ -15,17 +15,17 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Plugin version and other meta-data are defined here.
+ * Version information for qtype_codejudge.
  *
- * @package     mod_iajudge
+ * @package     qtype_codejudge
  * @copyright   2026 IA Judge Contributors
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component  = 'mod_iajudge';
-$plugin->version    = 2026061200;
-$plugin->requires   = 2026042000; // Moodle 5.2+.
-$plugin->maturity   = MATURITY_BETA;
-$plugin->release    = '0.2.1';
+$plugin->component = 'qtype_codejudge';
+$plugin->version   = 2026061300;
+$plugin->requires  = 2026042000; // Moodle 5.2+.
+$plugin->maturity  = MATURITY_ALPHA;
+$plugin->release   = '0.1.0';

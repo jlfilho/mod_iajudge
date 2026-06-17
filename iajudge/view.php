@@ -68,8 +68,8 @@ if ($action === 'submit' && has_capability('mod/iajudge:submit', $context)) {
     $code     = required_param('code', PARAM_RAW);
 
     // Validate language is among the allowed ones.
-    $allowedlangs = explode(',', $iajudge->allowed_languages);
-    if (!in_array($language, $allowedlangs)) {
+    $allowedlangs = array_column(iajudge_get_allowed_languages($iajudge), 'key');
+    if (!in_array($language, $allowedlangs, true)) {
         throw new moodle_exception('error_no_language', 'mod_iajudge');
     }
 
@@ -132,6 +132,7 @@ $mysubmissions = iajudge_get_user_submissions($iajudge->id, $USER->id);
 
 // Determine the allowed languages for the dropdown.
 $allowedlangs = iajudge_get_allowed_languages($iajudge);
+$activityquestions = iajudge_get_activity_questions($iajudge->id);
 
 // Check if the student has remaining attempts.
 $attemptsremaining = null;
@@ -149,13 +150,6 @@ $cansubmit = !$isgrader
 // ---------------------------------------------------------------------------
 echo $OUTPUT->header();
 
-// Problem statement (intro).
-echo $OUTPUT->box(
-    format_module_intro('iajudge', $iajudge, $cm->id),
-    'generalbox mod_introbox',
-    'iajudge_intro'
-);
-
 // Render the appropriate template.
 $allsubmissions = [];
 if ($isgrader) {
@@ -169,6 +163,7 @@ $templatecontext = [
     'cansubmit'         => $cansubmit,
     'isgrader'          => $isgrader,
     'allowedlangs'      => array_values($allowedlangs),
+    'activityquestions' => array_values($activityquestions),
     'mysubmissions'     => array_values($mysubmissions),
     'allsubmissions'     => array_values($allsubmissions),
     'attemptsremaining' => $attemptsremaining,

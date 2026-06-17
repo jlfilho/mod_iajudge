@@ -51,6 +51,10 @@ $string['lang_python']            = 'Python';
 $string['lang_c']                 = 'C';
 $string['lang_java']              = 'Java';
 $string['lang_javascript']        = 'JavaScript';
+$string['question_bank']          = 'Coding Questions';
+$string['question_default_mark']   = 'Default mark: {$a}';
+$string['no_codejudge_questions']  = 'No coding questions were found in the question bank for this course.';
+$string['error_no_questions_selected'] = 'Select at least one coding question from the question bank.';
 
 $string['max_attempts']      = 'Maximum Attempts';
 $string['max_attempts_help'] = 'Maximum number of code submissions per student. Set to 0 for unlimited attempts.';

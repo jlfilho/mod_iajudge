@@ -15,17 +15,16 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Plugin version and other meta-data are defined here.
+ * Capability definitions for qtype_codejudge.
  *
- * @package     mod_iajudge
+ * The question bank and quiz subsystems control who can create, edit, preview
+ * and review questions. This plugin does not need custom capabilities yet.
+ *
+ * @package     qtype_codejudge
  * @copyright   2026 IA Judge Contributors
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component  = 'mod_iajudge';
-$plugin->version    = 2026061200;
-$plugin->requires   = 2026042000; // Moodle 5.2+.
-$plugin->maturity   = MATURITY_BETA;
-$plugin->release    = '0.2.1';
+$capabilities = [];

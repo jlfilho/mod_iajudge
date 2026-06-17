@@ -42,5 +42,28 @@ function xmldb_mod_iajudge_upgrade(int $oldversion): bool {
         upgrade_mod_savepoint(true, 2026061102, 'iajudge');
     }
 
+    if ($oldversion < 2026061200) {
+        $table = new xmldb_table('iajudge_question');
+
+        if (!$dbman->table_exists($table)) {
+            $table->addField(new xmldb_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null));
+            $table->addField(new xmldb_field('iajudgeid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null));
+            $table->addField(new xmldb_field('questionid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null));
+            $table->addField(new xmldb_field('sortorder', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0'));
+            $table->addField(new xmldb_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0'));
+            $table->addField(new xmldb_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0'));
+
+            $table->addKey(new xmldb_key('primary', XMLDB_KEY_PRIMARY, ['id']));
+            $table->addKey(new xmldb_key('fk_iajudgeid', XMLDB_KEY_FOREIGN, ['iajudgeid'], 'iajudge', ['id']));
+            $table->addKey(new xmldb_key('fk_questionid', XMLDB_KEY_FOREIGN, ['questionid'], 'question', ['id']));
+            $table->addIndex(new xmldb_index('uq_iajudge_question', XMLDB_INDEX_UNIQUE, ['iajudgeid', 'questionid']));
+            $table->addIndex(new xmldb_index('idx_iajudge_sort', XMLDB_INDEX_NOTUNIQUE, ['iajudgeid', 'sortorder']));
+
+            $dbman->create_table($table);
+        }
+
+        upgrade_mod_savepoint(true, 2026061200, 'iajudge');
+    }
+
     return true;
 }

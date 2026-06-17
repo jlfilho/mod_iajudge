@@ -21,6 +21,22 @@ Moodle activity module for code submission and AI-assisted evaluation.
 2. Visit the Site administration notifications page, or upload the ZIP through the web installer.
 3. Complete the database upgrade when prompted.
 
+## Docker deploy
+
+Build the deploy image:
+
+```bash
+docker build -t iajudge-deploy .
+```
+
+Run it against a Moodle root mounted at `/var/www/html`:
+
+```bash
+docker run --rm -v /path/to/moodle:/var/www/html iajudge-deploy
+```
+
+The container copies the plugin into `mod/iajudge` and leaves the Moodle upgrade step for the admin notifications page.
+
 ## Notes
 
 - The background grading task is queued as an ad-hoc task when a student submits code.

@@ -12,10 +12,31 @@
         {{> mod_iajudge/submissions_list }}
     {{/isgrader}}
 
-    {{^isgrader}}
-        {{! Student Submission Form }}
-        {{#cansubmit}}
-            <div class="card mb-4 ia-judge-editor-card border-primary">
+        {{^isgrader}}
+            {{! Student Submission Form }}
+            {{#activityquestions.0}}
+                <div class="card mb-4 border-secondary">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">
+                            <i class="fa fa-list-alt mr-2"></i>{{#str}} question_bank, mod_iajudge {{/str}}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {{#activityquestions}}
+                            <div class="mb-4">
+                                <h6 class="font-weight-bold mb-1">{{name}}</h6>
+                                <div class="text-muted small mb-2">
+                                    {{#str}} question_default_mark, mod_iajudge, {{defaultmark}} {{/str}}
+                                </div>
+                                <div class="small text-body">{{{questiontextformatted}}}</div>
+                            </div>
+                        {{/activityquestions}}
+                    </div>
+                </div>
+            {{/activityquestions.0}}
+
+            {{#cansubmit}}
+                <div class="card mb-4 ia-judge-editor-card border-primary">
                 <div class="card-header bg-primary text-white">
                     <h5 class="card-title mb-0">
                         <i class="fa fa-code mr-2"></i>{{#str}} submit_code, mod_iajudge {{/str}}

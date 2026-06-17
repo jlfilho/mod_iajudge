@@ -167,6 +167,19 @@ function iajudge_get_allowed_languages(stdClass $iajudge): array {
             ];
         }
     }
+
+    // Legacy safeguard: older saves may contain malformed values (for example
+    // only "1" from checkbox serialization bugs). Fall back to the full set so
+    // the activity remains usable until the professor re-saves it.
+    if (empty($result)) {
+        foreach ($labelmap as $key => $label) {
+            $result[] = [
+                'key'   => $key,
+                'label' => $label,
+            ];
+        }
+    }
+
     return $result;
 }
 
@@ -188,4 +201,137 @@ function iajudge_get_submission_with_grade(int $submissionid): stdClass|false {
              WHERE s.id = :id";
 
     return $DB->get_record_sql($sql, ['id' => $submissionid]);
+}
+
+/**
+ * Returns codejudge questions available in the current course or system question bank.
+ *
+ * @param int $courseid The course id.
+ * @return array
+ */
+function iajudge_get_codejudge_bank_questions(int $courseid): array {
+    global $DB;
+
+    $coursecontextid = context_course::instance($courseid)->id;
+    $systemcontextid = context_system::instance()->id;
+
+    $sql = "SELECT q.id,
+                   q.name,
+                   q.questiontext,
+                   q.questiontextformat,
+                   q.defaultmark,
+                   o.language,
+                   o.rubric,
+                   o.startercode,
+                   o.editorheight
+              FROM {question} q
+         LEFT JOIN {question_categories} qc ON qc.id = q.category
+         LEFT JOIN {qtype_codejudge_options} o ON o.questionid = q.id
+             WHERE q.qtype = :qtype
+               AND qc.contextid IN (:coursecontextid, :systemcontextid)
+          ORDER BY q.name ASC";
+
+    $records = array_values($DB->get_records_sql($sql, [
+        'qtype' => 'codejudge',
+        'coursecontextid' => $coursecontextid,
+        'systemcontextid' => $systemcontextid,
+    ]));
+
+    foreach ($records as $record) {
+        $record->questiontextformatted = format_text(
+            $record->questiontext ?? '',
+            $record->questiontextformat ?? FORMAT_HTML,
+            ['overflowdiv' => true]
+        );
+        $record->summary = trim(strip_tags($record->questiontextformatted));
+    }
+
+    return $records;
+}
+
+/**
+ * Returns the questions linked to an iajudge activity.
+ *
+ * @param int $iajudgeid The activity id.
+ * @return array
+ */
+function iajudge_get_activity_questions(int $iajudgeid): array {
+    global $DB;
+
+    $sql = "SELECT iq.id AS linkid,
+                   iq.questionid,
+                   iq.sortorder,
+                   q.name,
+                   q.questiontext,
+                   q.questiontextformat,
+                   q.defaultmark,
+                   o.language,
+                   o.rubric,
+                   o.startercode,
+                   o.editorheight
+              FROM {iajudge_question} iq
+              JOIN {question} q ON q.id = iq.questionid
+         LEFT JOIN {qtype_codejudge_options} o ON o.questionid = q.id
+             WHERE iq.iajudgeid = :iajudgeid
+          ORDER BY iq.sortorder ASC, q.name ASC";
+
+    $records = array_values($DB->get_records_sql($sql, ['iajudgeid' => $iajudgeid]));
+
+    foreach ($records as $record) {
+        $record->questiontextformatted = format_text(
+            $record->questiontext ?? '',
+            $record->questiontextformat ?? FORMAT_HTML,
+            ['overflowdiv' => true]
+        );
+        $record->summary = trim(strip_tags($record->questiontextformatted));
+    }
+
+    return $records;
+}
+
+/**
+ * Synchronizes selected question ids with the link table.
+ *
+ * @param int   $iajudgeid   The activity id.
+ * @param array $questionids Selected question ids.
+ * @return void
+ */
+function iajudge_sync_activity_questions(int $iajudgeid, array $questionids): void {
+    global $DB;
+
+    $questionids = array_values(array_unique(array_map('intval', array_filter($questionids))));
+    $existing = $DB->get_records('iajudge_question', ['iajudgeid' => $iajudgeid], '', 'id, questionid');
+    $existingids = array_map(static fn($record) => (int)$record->questionid, $existing);
+
+    $todelete = array_diff($existingids, $questionids);
+    if (!empty($todelete)) {
+        [$insql, $params] = $DB->get_in_or_equal($todelete, SQL_PARAMS_NAMED, 'qid');
+        $params['iajudgeid'] = $iajudgeid;
+        $DB->delete_records_select('iajudge_question', 'iajudgeid = :iajudgeid AND questionid ' . $insql, $params);
+    }
+
+    $sortorder = 1;
+    foreach ($questionids as $questionid) {
+        $record = $DB->get_record('iajudge_question', [
+            'iajudgeid' => $iajudgeid,
+            'questionid' => $questionid,
+        ]);
+
+        $now = time();
+        if ($record) {
+            $record->sortorder = $sortorder++;
+            $record->timemodified = $now;
+            $DB->update_record('iajudge_question', $record);
+            continue;
+        }
+
+        $record = (object) [
+            'iajudgeid' => $iajudgeid,
+            'questionid' => $questionid,
+            'sortorder' => $sortorder++,
+            'timecreated' => $now,
+            'timemodified' => $now,
+        ];
+        $DB->insert_record('iajudge_question', $record);
+    }
 }

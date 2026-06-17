@@ -78,5 +78,29 @@
       </INDEXES>
     </TABLE>
 
+    <!--
+        Linked questions from the Moodle question bank.
+        One row per question attached to an activity instance.
+    -->
+    <TABLE NAME="iajudge_question" COMMENT="Stores questions linked to an iajudge activity">
+      <FIELDS>
+        <FIELD NAME="id"           TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Primary key"/>
+        <FIELD NAME="iajudgeid"    TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="FK to iajudge.id"/>
+        <FIELD NAME="questionid"   TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="FK to question.id"/>
+        <FIELD NAME="sortorder"    TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Display order"/>
+        <FIELD NAME="timecreated"  TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Unix timestamp of creation"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Unix timestamp of last modification"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_iajudgeid" TYPE="foreign" FIELDS="iajudgeid" REFTABLE="iajudge" REFFIELDS="id"/>
+        <KEY NAME="fk_questionid" TYPE="foreign" FIELDS="questionid" REFTABLE="question" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="uq_iajudge_question" UNIQUE="true" FIELDS="iajudgeid, questionid"/>
+        <INDEX NAME="idx_iajudge_sort" UNIQUE="false" FIELDS="iajudgeid, sortorder"/>
+      </INDEXES>
+    </TABLE>
+
   </TABLES>
 </XMLDB>

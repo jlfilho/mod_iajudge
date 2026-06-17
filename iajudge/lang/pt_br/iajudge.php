@@ -27,11 +27,11 @@ defined('MOODLE_INTERNAL') || die();
 // ---------------------------------------------------------------------------
 // Identidade do Plugin
 // ---------------------------------------------------------------------------
-$string['pluginname']      = 'Avaliador de IA';
-$string['modulename']      = 'Avaliador de Código IA';
-$string['modulenameplural'] = 'Avaliadores de Código IA';
-$string['pluginadministration'] = 'Administração do Avaliador de IA';
-$string['modulename_help'] = 'A atividade Avaliador de IA permite que os alunos enviem código-fonte (Python, C, Java, JavaScript) que é avaliado de forma assíncrona por um modelo de IA. A IA retorna uma nota numérica e um feedback pedagógico com base em uma rubrica definida pelo professor.';
+$string['pluginname']      = 'CodeReview IA';
+$string['modulename']      = 'CodeReview IA';
+$string['modulenameplural'] = 'CodeReview IA';
+$string['pluginadministration'] = 'Administração do CodeReview IA';
+$string['modulename_help'] = 'A atividade CodeReview IA permite que os alunos enviem código-fonte (Python, C, Java, JavaScript) que é avaliado de forma assíncrona por um modelo de IA. A IA retorna uma nota numérica e um feedback pedagógico com base em uma rubrica definida pelo professor.';
 
 // ---------------------------------------------------------------------------
 // mod_form.php — Formulário do Professor
@@ -51,6 +51,10 @@ $string['lang_python']            = 'Python';
 $string['lang_c']                 = 'C';
 $string['lang_java']              = 'Java';
 $string['lang_javascript']        = 'JavaScript';
+$string['question_bank']          = 'Questões de Codificação';
+$string['question_default_mark']   = 'Nota padrão: {$a}';
+$string['no_codejudge_questions']  = 'Nenhuma questão de codificação foi encontrada no banco de questões deste curso.';
+$string['error_no_questions_selected'] = 'Selecione ao menos uma questão de codificação do banco de questões.';
 
 $string['max_attempts']      = 'Tentativas Máximas';
 $string['max_attempts_help'] = 'Número máximo de submissões de código por aluno. Defina como 0 para tentativas ilimitadas.';

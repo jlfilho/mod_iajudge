@@ -27,6 +27,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/course/moodleform_mod.php');
+require_once($CFG->dirroot . '/mod/iajudge/locallib.php');
 
 /**
  * Module instance settings form.
@@ -41,7 +42,7 @@ class mod_iajudge_mod_form extends moodleform_mod {
      * Defines the form fields for the teacher configuration UI.
      */
     public function definition(): void {
-        global $CFG;
+        global $CFG, $COURSE;
 
         $mform = $this->_form;
 
@@ -86,7 +87,9 @@ class mod_iajudge_mod_form extends moodleform_mod {
 
         $checkboxes = [];
         foreach ($languages as $key => $label) {
-            $checkboxes[] = $mform->createElement('checkbox', $key, '', $label);
+            // Submit the values as allowed_languages[python|c|java|javascript]
+            // so Moodle returns a single array for validation and saving.
+            $checkboxes[] = $mform->createElement('checkbox', "allowed_languages[$key]", '', $label);
         }
 
         $mform->addGroup(
@@ -101,6 +104,47 @@ class mod_iajudge_mod_form extends moodleform_mod {
         // Default: all languages selected.
         foreach (array_keys($languages) as $key) {
             $mform->setDefault("allowed_languages[$key]", 1);
+        }
+
+        // ---------------------------------------------------------------
+        // Coding questions from the question bank.
+        // ---------------------------------------------------------------
+        $mform->addElement('header', 'questions_header', get_string('question_bank', 'mod_iajudge'));
+
+        $availablequestions = iajudge_get_codejudge_bank_questions((int)$COURSE->id);
+        if (empty($availablequestions)) {
+            $mform->addElement(
+                'static',
+                'no_codejudge_questions',
+                '',
+                get_string('no_codejudge_questions', 'mod_iajudge')
+            );
+        } else {
+            foreach ($availablequestions as $question) {
+                $summary = trim(strip_tags(format_text(
+                    $question->questiontext ?? '',
+                    $question->questiontextformat ?? FORMAT_HTML,
+                    ['context' => context_course::instance((int)$COURSE->id)]
+                )));
+                if (core_text::strlen($summary) > 220) {
+                    $summary = core_text::substr($summary, 0, 220) . '...';
+                }
+
+                $label = html_writer::div(
+                    html_writer::tag('strong', format_string($question->name)) .
+                    html_writer::div(
+                        get_string('question_default_mark', 'mod_iajudge', format_float((float)$question->defaultmark, 1)),
+                        'small text-muted'
+                    ) .
+                    ($summary !== '' ? html_writer::div(s($summary), 'small') : ''),
+                    'mb-2'
+                );
+
+                $elements = [];
+                $elements[] = $mform->createElement('advcheckbox', "selected_questions[$question->id]", '', '');
+                $elements[] = $mform->createElement('static', '', '', $label);
+                $mform->addGroup($elements, "selectedquestiongroup{$question->id}", '', [' '], false);
+            }
         }
 
         // ---------------------------------------------------------------
@@ -155,6 +199,10 @@ class mod_iajudge_mod_form extends moodleform_mod {
             $errors['rubric_prompt'] = get_string('error_empty_rubric', 'mod_iajudge');
         }
 
+        if (empty(array_filter($data['selected_questions'] ?? []))) {
+            $errors['selected_questions'] = get_string('error_no_questions_selected', 'mod_iajudge');
+        }
+
         return $errors;
     }
 
@@ -176,6 +224,14 @@ class mod_iajudge_mod_form extends moodleform_mod {
                 if ($lang) {
                     $defaultvalues['allowed_languages'][$lang] = 1;
                 }
+            }
+        }
+
+        if (!empty($defaultvalues['instance'])) {
+            $selected = iajudge_get_activity_questions((int)$defaultvalues['instance']);
+            $defaultvalues['selected_questions'] = [];
+            foreach ($selected as $question) {
+                $defaultvalues['selected_questions'][$question->questionid] = 1;
             }
         }
     }
