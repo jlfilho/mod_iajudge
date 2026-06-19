@@ -30,7 +30,7 @@ require_once($CFG->dirroot . '/question/type/questionbase.php');
 /**
  * Question definition for code-based responses.
  */
-class qtype_codejudge_question extends question_with_responses {
+class qtype_codejudge_question extends question_graded_automatically {
 
     /**
      * Normalise code text so quiz save/review comparisons are stable.
@@ -58,17 +58,6 @@ class qtype_codejudge_question extends question_with_responses {
     }
 
     /**
-     * Use the manual grading behaviour until asynchronous evaluation is wired in.
-     *
-     * @param question_attempt $qa Question attempt.
-     * @param string $preferredbehaviour Preferred behaviour.
-     * @return question_behaviour
-     */
-    public function make_behaviour(question_attempt $qa, $preferredbehaviour) {
-        return question_engine::make_behaviour('manualgraded', $qa, $preferredbehaviour);
-    }
-
-    /**
      * A response is complete when the code is not empty.
      *
      * @param array $response The submitted response.
@@ -86,6 +75,38 @@ class qtype_codejudge_question extends question_with_responses {
      */
     public function is_gradable_response(array $response): bool {
         return $this->is_complete_response($response);
+    }
+
+    /**
+     * Returns validation feedback for behaviours that validate each check.
+     *
+     * @param array $response The submitted response.
+     * @return string Empty when the response can be processed.
+     */
+    public function get_validation_error(array $response): string {
+        if ($this->is_complete_response($response)) {
+            return '';
+        }
+
+        return get_string('pleaseenterananswer', 'question');
+    }
+
+    /**
+     * Provide a provisional automatic result for immediate/interactive behaviours.
+     *
+     * The real score is applied asynchronously by the AI task through a manual
+     * grading step. Returning needsgrading lets Moodle accept the check without
+     * pretending that the AI result is already available.
+     *
+     * @param array $response The submitted response.
+     * @return array{0: float, 1: question_state}
+     */
+    public function grade_response(array $response): array {
+        if (!$this->is_gradable_response($response)) {
+            return [0.0, question_state::$gaveup];
+        }
+
+        return [0.0, question_state::$needsgrading];
     }
 
     /**

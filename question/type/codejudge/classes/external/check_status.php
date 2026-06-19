@@ -55,7 +55,7 @@ class check_status extends external_api {
      * @return array
      */
     public static function execute(int $gradingid): array {
-        global $DB;
+        global $DB, $USER;
 
         self::validate_parameters(self::execute_parameters(), [
             'gradingid' => $gradingid,
@@ -75,6 +75,8 @@ class check_status extends external_api {
                 'message' => get_string('grading_status_unavailable', 'qtype_codejudge'),
             ];
         }
+
+        self::require_record_access($record, (int)$USER->id);
 
         $statusmessage = match ($record->status) {
             'graded' => get_string('grading_status_graded', 'qtype_codejudge'),
@@ -107,5 +109,61 @@ class check_status extends external_api {
             'errormessage' => new external_value(PARAM_RAW, 'Error message captured during processing, when available.'),
             'message' => new external_value(PARAM_RAW, 'Human-readable status message.'),
         ]);
+    }
+
+    /**
+     * Ensures the current user can access a grading status record.
+     *
+     * @param \stdClass $record Grading record.
+     * @param int $currentuserid Current user id.
+     */
+    private static function require_record_access(\stdClass $record, int $currentuserid): void {
+        if ((int)$record->userid === $currentuserid) {
+            return;
+        }
+
+        $context = self::get_grading_context($record);
+        if ($context) {
+            require_capability('mod/quiz:viewreports', $context);
+            return;
+        }
+
+        require_capability('moodle/site:config', \context_system::instance());
+    }
+
+    /**
+     * Resolves the Quiz module context for a grading record.
+     *
+     * @param \stdClass $record Grading record.
+     * @return \context|null
+     */
+    private static function get_grading_context(\stdClass $record): ?\context {
+        global $DB;
+
+        $questionattemptid = (int)($record->questionattemptid ?? 0);
+        if ($questionattemptid <= 0) {
+            return null;
+        }
+
+        $contextid = $DB->get_field_sql("
+            SELECT ctx.id
+              FROM {question_attempts} qa
+              JOIN {quiz_attempts} qat ON qat.uniqueid = qa.questionusageid
+              JOIN {quiz} quiz ON quiz.id = qat.quiz
+              JOIN {modules} m ON m.name = :modname
+              JOIN {course_modules} cm ON cm.module = m.id AND cm.instance = quiz.id
+              JOIN {context} ctx ON ctx.contextlevel = :contextlevel AND ctx.instanceid = cm.id
+             WHERE qa.id = :questionattemptid
+        ", [
+            'modname' => 'quiz',
+            'contextlevel' => CONTEXT_MODULE,
+            'questionattemptid' => $questionattemptid,
+        ]);
+
+        if (!$contextid) {
+            return null;
+        }
+
+        return \context::instance_by_id((int)$contextid, IGNORE_MISSING) ?: null;
     }
 }

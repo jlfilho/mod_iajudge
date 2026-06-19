@@ -27,6 +27,7 @@ namespace qtype_codejudge\task;
 defined('MOODLE_INTERNAL') || die();
 
 use qtype_codejudge\ai\provider_factory;
+use qtype_codejudge\local\grading_helper;
 
 /**
  * Background task that processes one queued AI grading request.
@@ -61,6 +62,12 @@ class grade_submission extends \core\task\adhoc_task {
             return;
         }
 
+        if ($record->status === 'graded' && empty($record->gradeapplied)) {
+            grading_helper::apply_result_to_question_engine($record);
+            mtrace("qtype_codejudge grade_submission: grading record {$gradingid} was already graded; applied stored result.");
+            return;
+        }
+
         if ($record->status === 'graded') {
             mtrace("qtype_codejudge grade_submission: grading record {$gradingid} already processed.");
             return;
@@ -82,6 +89,7 @@ class grade_submission extends \core\task\adhoc_task {
             $record->errormessage = null;
             $record->timemodified = time();
             $DB->update_record('qtype_codejudge_grading', $record);
+            grading_helper::apply_result_to_question_engine($record);
 
             mtrace("qtype_codejudge grade_submission: grading record {$gradingid} completed with score {$record->score}.");
         } catch (\Throwable $e) {

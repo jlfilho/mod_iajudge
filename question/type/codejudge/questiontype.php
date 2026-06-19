@@ -33,11 +33,21 @@ require_once($CFG->dirroot . '/question/type/questiontypebase.php');
 class qtype_codejudge extends question_type {
 
     /**
+     * Default editor height, in pixels.
+     */
+    private const DEFAULT_EDITOR_HEIGHT = 420;
+
+    /**
+     * Minimum editor height accepted by the editing form.
+     */
+    private const MIN_EDITOR_HEIGHT = 200;
+
+    /**
      * Returns the plugin name.
      *
      * @return string
      */
-    public function name(): string {
+    public function name() {
         return 'codejudge';
     }
 
@@ -46,7 +56,7 @@ class qtype_codejudge extends question_type {
      *
      * @return array
      */
-    public function extra_question_fields(): array {
+    public function extra_question_fields() {
         return [
             'qtype_codejudge_options',
             'language',
@@ -62,7 +72,7 @@ class qtype_codejudge extends question_type {
      * @param stdClass $question Question data from the editing form.
      * @return bool
      */
-    public function save_question_options($question): bool {
+    public function save_question_options($question) {
         global $DB;
 
         $record = $DB->get_record('qtype_codejudge_options', ['questionid' => $question->id]);
@@ -78,7 +88,7 @@ class qtype_codejudge extends question_type {
         $record->language = $language;
         $record->rubric = trim((string)($question->rubric ?? ''));
         $record->startercode = (string)($question->startercode ?? '');
-        $record->editorheight = (int)($question->editorheight ?? 420);
+        $record->editorheight = self::normalise_editor_height($question->editorheight ?? null);
         $record->timemodified = $now;
 
         if (empty($record->id)) {
@@ -96,7 +106,7 @@ class qtype_codejudge extends question_type {
      * @param stdClass $question Question data being loaded.
      * @return bool
      */
-    public function get_question_options($question): bool {
+    public function get_question_options($question) {
         global $DB;
 
         $options = $DB->get_record('qtype_codejudge_options', ['questionid' => $question->id]);
@@ -106,7 +116,7 @@ class qtype_codejudge extends question_type {
                 'language' => \qtype_codejudge\local\language_helper::get_default(),
                 'rubric' => '',
                 'startercode' => '',
-                'editorheight' => 420,
+                'editorheight' => self::DEFAULT_EDITOR_HEIGHT,
                 'timecreated' => 0,
                 'timemodified' => 0,
             ];
@@ -116,7 +126,7 @@ class qtype_codejudge extends question_type {
         $question->language = \qtype_codejudge\local\language_helper::normalise($options->language ?? null);
         $question->rubric = (string)($options->rubric ?? '');
         $question->startercode = (string)($options->startercode ?? '');
-        $question->editorheight = (int)($options->editorheight ?? 420);
+        $question->editorheight = self::normalise_editor_height($options->editorheight ?? null);
 
         return true;
     }
@@ -132,7 +142,7 @@ class qtype_codejudge extends question_type {
         $question->language = \qtype_codejudge\local\language_helper::normalise($questiondata->options->language ?? null);
         $question->rubric = (string)($questiondata->options->rubric ?? '');
         $question->startercode = (string)($questiondata->options->startercode ?? '');
-        $question->editorheight = (int)($questiondata->options->editorheight ?? 420);
+        $question->editorheight = self::normalise_editor_height($questiondata->options->editorheight ?? null);
     }
 
     /**
@@ -142,11 +152,27 @@ class qtype_codejudge extends question_type {
      * @param int $contextid Context id.
      * @return bool
      */
-    public function delete_question($questionid, $contextid): bool {
+    public function delete_question($questionid, $contextid) {
         global $DB;
 
         $DB->delete_records('qtype_codejudge_grading', ['questionid' => $questionid]);
         $DB->delete_records('qtype_codejudge_options', ['questionid' => $questionid]);
         return parent::delete_question($questionid, $contextid);
+    }
+
+    /**
+     * Normalise the stored editor height to a safe value for the edit form and renderer.
+     *
+     * @param mixed $height Raw height value.
+     * @return int Normalised height in pixels.
+     */
+    private static function normalise_editor_height($height): int {
+        $height = (int)$height;
+
+        if ($height < self::MIN_EDITOR_HEIGHT) {
+            return self::DEFAULT_EDITOR_HEIGHT;
+        }
+
+        return $height;
     }
 }

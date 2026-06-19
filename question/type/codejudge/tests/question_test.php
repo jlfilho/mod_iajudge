@@ -61,6 +61,15 @@ class qtype_codejudge_question_testcase extends advanced_testcase {
         $this->assertTrue($question->is_gradable_response(['code' => "print('hi')"]));
     }
 
+    public function test_grade_response_returns_needs_grading_until_ai_result_is_available(): void {
+        $question = $this->create_question();
+
+        [$fraction, $state] = $question->grade_response(['code' => "print('hi')", 'language' => 'python']);
+
+        $this->assertSame(0.0, $fraction);
+        $this->assertSame(question_state::$needsgrading, $state);
+    }
+
     public function test_response_summary_is_truncated_and_normalised(): void {
         $question = $this->create_question();
         $code = str_repeat('abc', 60);

@@ -87,6 +87,7 @@ class queue_grading extends external_api {
 
         $context = \context_system::instance();
         self::validate_context($context);
+        require_capability('moodle/site:config', $context);
 
         $question = $DB->get_record('question', ['id' => $params['questionid']], '*', MUST_EXIST);
         if (($question->qtype ?? '') !== 'codejudge') {

@@ -43,5 +43,17 @@ class qtype_codejudge_language_helper_testcase extends advanced_testcase {
 
     public function test_normalise_keeps_supported_values(): void {
         $this->assertSame('java', \qtype_codejudge\local\language_helper::normalise('java'));
+        $this->assertSame('portugol', \qtype_codejudge\local\language_helper::normalise('portugol'));
+    }
+
+    public function test_portugol_has_student_description(): void {
+        $options = \qtype_codejudge\local\language_helper::get_options();
+
+        $this->assertArrayHasKey('portugol', $options);
+        $this->assertSame('Portugol', $options['portugol']);
+        $this->assertStringContainsString(
+            'algoritmo estruturado',
+            \qtype_codejudge\local\language_helper::get_description('portugol')
+        );
     }
 }

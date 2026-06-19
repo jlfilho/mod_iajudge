@@ -34,6 +34,7 @@ $functions = [
         'type'          => 'write',
         'ajax'          => true,
         'loginrequired' => true,
+        'capabilities'  => 'moodle/site:config',
     ],
 
     // Returns the current status and result of a queued grading record.

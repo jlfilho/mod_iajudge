@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="question/type/codejudge/db" VERSION="2026061300" COMMENT="XMLDB file for qtype_codejudge"
+<XMLDB PATH="question/type/codejudge/db" VERSION="2026061310" COMMENT="XMLDB file for qtype_codejudge"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../../lib/xmldb/xmldb.xsd"
 >
@@ -20,6 +20,11 @@
         <FIELD NAME="feedback" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="AI feedback text"/>
         <FIELD NAME="rawresponse" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Raw AI response payload"/>
         <FIELD NAME="errormessage" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Error message captured when grading fails"/>
+        <FIELD NAME="gradeapplied" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether the AI result was applied to the Moodle question engine"/>
+        <FIELD NAME="appliedmark" TYPE="number" LENGTH="12" DECIMALS="7" NOTNULL="false" SEQUENCE="false" COMMENT="Mark applied to the question attempt"/>
+        <FIELD NAME="appliedstate" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" COMMENT="Question attempt state after applying the mark"/>
+        <FIELD NAME="appliedmessage" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Diagnostic message from applying the mark"/>
+        <FIELD NAME="timegradeapplied" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Unix timestamp when the mark was applied"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Unix timestamp"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Unix timestamp"/>
       </FIELDS>

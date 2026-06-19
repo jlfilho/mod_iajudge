@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Version information for qtype_codejudge.
+ * Event observers for qtype_codejudge.
  *
  * @package     qtype_codejudge
  * @copyright   2026 IA Judge Contributors
@@ -24,8 +24,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'qtype_codejudge';
-$plugin->version   = 2026061323;
-$plugin->requires  = 2026042000; // Moodle 5.2+.
-$plugin->maturity  = MATURITY_ALPHA;
-$plugin->release   = '0.1.23';
+$observers = [
+    [
+        'eventname' => '\mod_quiz\event\attempt_submitted',
+        'callback' => '\qtype_codejudge\observer::quiz_attempt_submitted',
+    ],
+];

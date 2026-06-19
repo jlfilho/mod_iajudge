@@ -38,13 +38,20 @@ class qtype_codejudge_grading_helper_testcase extends advanced_testcase {
             'Use clear variable names.',
             'python',
             "print('hi')",
-            'print("starter")'
+            'print("starter")',
+            'pt_br'
         );
 
         $this->assertStringContainsString('QUESTION:', $prompt);
         $this->assertStringContainsString('Explain the result.', $prompt);
         $this->assertStringContainsString('RUBRIC:', $prompt);
         $this->assertStringContainsString('PROGRAMMING LANGUAGE: Python', $prompt);
+        $this->assertStringContainsString('LANGUAGE-COMPLIANCE RULE:', $prompt);
+        $this->assertStringContainsString('The expected language for this answer is: Python.', $prompt);
+        $this->assertStringContainsString('Grade language compliance before algorithm correctness.', $prompt);
+        $this->assertStringContainsString('the score must be at most 30', $prompt);
+        $this->assertStringContainsString('the score must be at most 20', $prompt);
+        $this->assertStringContainsString('Brazilian Portuguese (pt_br)', $prompt);
         $this->assertStringContainsString('STARTER CODE:', $prompt);
         $this->assertStringContainsString('STUDENT CODE:', $prompt);
         $this->assertStringContainsString('```python', $prompt);
@@ -53,5 +60,27 @@ class qtype_codejudge_grading_helper_testcase extends advanced_testcase {
     public function test_normalise_code_converts_line_endings(): void {
         $code = \qtype_codejudge\local\grading_helper::normalise_code("line1\r\nline2\rline3");
         $this->assertSame("line1\nline2\nline3", $code);
+    }
+
+    public function test_build_prompt_includes_portugol_specific_rules(): void {
+        $prompt = \qtype_codejudge\local\grading_helper::build_prompt(
+            'Conte as vogais de uma palavra.',
+            'Avalie a logica.',
+            'portugol',
+            "leia palavra\ncontador <- 0\nescreva contador",
+            '',
+            'pt_br'
+        );
+
+        $this->assertStringContainsString('PROGRAMMING LANGUAGE: Portugol', $prompt);
+        $this->assertStringContainsString('PORTUGOL-SPECIFIC GRADING RULES:', $prompt);
+        $this->assertStringContainsString('Language compliance is mandatory', $prompt);
+        $this->assertStringContainsString('the score must be at most 30', $prompt);
+        $this->assertStringContainsString('executable code in another programming language', $prompt);
+        $this->assertStringContainsString('the score must be at most 20', $prompt);
+        $this->assertStringContainsString('Do not accept purely descriptive natural-language answers', $prompt);
+        $this->assertStringContainsString('leia', $prompt);
+        $this->assertStringContainsString('escreva', $prompt);
+        $this->assertStringContainsString('```portugol', $prompt);
     }
 }

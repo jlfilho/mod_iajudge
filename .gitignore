@@ -1,5 +1,8 @@
 *.zip
+dist/
+node_modules/
 
+.SPEC.md
 # Common local/editor files
 .DS_Store
 Thumbs.db

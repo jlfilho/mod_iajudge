@@ -1,12 +1,12 @@
 /**
- * Lightweight code editor enhancement for qtype_codejudge.
+ * Code editor enhancement for qtype_codejudge.
  *
  * @package     qtype_codejudge
  * @copyright   2026 IA Judge Contributors
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
+define(['require'], function(require) {
     var TAB = '    ';
 
     var getRoot = function(rootid) {
@@ -23,6 +23,15 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
 
     var getTextarea = function(root) {
         return root ? root.querySelector('[data-region="codejudge-code"]') : null;
+    };
+
+    var getLabel = function(root, textarea) {
+        if (!root || !textarea || !textarea.id) {
+            return '';
+        }
+
+        var label = root.querySelector('label[for="' + textarea.id + '"]');
+        return label ? label.textContent : '';
     };
 
     var resize = function(textarea) {
@@ -60,86 +69,56 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         textarea.selectionEnd = Math.max(start - TAB.length + unindented.length, 0);
     };
 
-    var queueSubmission = function(form) {
-        var roots = form.querySelectorAll('[data-region="codejudge-root"]');
-        var requests = [];
+    var initialiseTextareaFallback = function(textarea) {
+        textarea.spellcheck = false;
+        textarea.setAttribute('wrap', 'off');
+        textarea.setAttribute('autocomplete', 'off');
+        textarea.setAttribute('autocorrect', 'off');
+        textarea.setAttribute('autocapitalize', 'off');
 
-        roots.forEach(function(root) {
-            var textarea = getTextarea(root);
-            var questionid = parseInt(root.dataset.questionid || '0', 10);
-            var questionattemptid = parseInt(root.dataset.questionattemptid || '0', 10);
-            var language = root.dataset.language || 'python';
-            var code;
-
-            if (!textarea || textarea.hasAttribute('readonly')) {
-                return;
-            }
-
-            code = (textarea.value || '').trim();
-            if (!questionid || code === '') {
-                return;
-            }
-
-            requests.push(Ajax.call([{
-                methodname: 'qtype_codejudge_queue_grading',
-                args: {
-                    questionid: questionid,
-                    code: textarea.value,
-                    language: language,
-                    questionattemptid: questionattemptid,
-                    questionattemptstepid: 0,
-                    userid: 0
+        if (!textarea.hasAttribute('readonly')) {
+            textarea.addEventListener('keydown', function(event) {
+                if (event.key !== 'Tab') {
+                    return;
                 }
-            }])[0]);
-        });
 
-        if (!requests.length) {
-            form.dataset.codejudgeSubmitBypass = '1';
-            if (typeof form.requestSubmit === 'function') {
-                form.requestSubmit();
-            } else {
-                form.submit();
-            }
-            return;
+                event.preventDefault();
+                indentSelection(textarea, event.shiftKey);
+                resize(textarea);
+            });
+
+            textarea.addEventListener('input', function() {
+                resize(textarea);
+            });
+
+            textarea.addEventListener('focus', function() {
+                resize(textarea);
+            });
         }
 
-        Promise.allSettled(requests).then(function() {
-            form.dataset.codejudgeSubmitBypass = '1';
-            if (typeof form.requestSubmit === 'function') {
-                form.requestSubmit();
-            } else {
-                form.submit();
-            }
-        }).catch(function(error) {
-            Notification.exception(error);
-            form.dataset.codejudgeSubmitBypass = '1';
-            if (typeof form.requestSubmit === 'function') {
-                form.requestSubmit();
-            } else {
-                form.submit();
-            }
-        });
+        resize(textarea);
     };
 
-    var bindQueueOnSubmit = function(root) {
-        var form = root ? root.closest('form') : null;
-
-        if (!form || form.dataset.codejudgeQueueBound === '1') {
-            return;
-        }
-
-        form.dataset.codejudgeQueueBound = '1';
-
-        form.addEventListener('submit', function(event) {
-            if (form.dataset.codejudgeSubmitBypass === '1') {
-                form.dataset.codejudgeSubmitBypass = '0';
+    var initCodeMirror = function(root, textarea) {
+        require(['qtype_codejudge/codemirror6'], function(CodeMirror6) {
+            if (!CodeMirror6 || typeof CodeMirror6.create !== 'function') {
                 return;
             }
 
-            if (root.contains(event.target) || event.target === form || form.contains(event.target)) {
-                event.preventDefault();
-                queueSubmission(form);
+            try {
+                root.codejudgeEditor = CodeMirror6.create(textarea, {
+                    ariaLabel: getLabel(root, textarea),
+                    language: textarea.dataset.language || root.dataset.language || 'python',
+                    minHeight: textarea.dataset.editorHeight || textarea.style.minHeight
+                });
+                root.dataset.codejudgeEditor = 'codemirror6';
+            } catch (error) {
+                root.dataset.codejudgeEditor = 'textarea';
+                resize(textarea);
             }
+        }, function() {
+            root.dataset.codejudgeEditor = 'textarea';
+            resize(textarea);
         });
     };
 
@@ -157,37 +136,9 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         }
 
         root.dataset.codejudgeInitialized = '1';
-        textarea.spellcheck = false;
-        textarea.setAttribute('wrap', 'off');
-        textarea.setAttribute('autocomplete', 'off');
-        textarea.setAttribute('autocorrect', 'off');
-        textarea.setAttribute('autocapitalize', 'off');
-
-        if (textarea.hasAttribute('readonly')) {
-            resize(textarea);
-            return;
-        }
-
-        textarea.addEventListener('keydown', function(event) {
-            if (event.key !== 'Tab') {
-                return;
-            }
-
-            event.preventDefault();
-            indentSelection(textarea, event.shiftKey);
-            resize(textarea);
-        });
-
-        textarea.addEventListener('input', function() {
-            resize(textarea);
-        });
-
-        textarea.addEventListener('focus', function() {
-            resize(textarea);
-        });
-
-        resize(textarea);
-        bindQueueOnSubmit(root);
+        root.dataset.codejudgeEditor = 'textarea';
+        initialiseTextareaFallback(textarea);
+        initCodeMirror(root, textarea);
     };
 
     return {

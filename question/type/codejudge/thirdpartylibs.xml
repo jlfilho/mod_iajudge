@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<libraries>
+    <library>
+        <location>amd/src/codemirror6.js</location>
+        <name>CodeMirror 6 bundle</name>
+        <version>6</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+    </library>
+    <library>
+        <location>amd/build/codemirror6.min.js</location>
+        <name>CodeMirror 6 bundle</name>
+        <version>6</version>
+        <license>MIT</license>
+        <licenseversion></licenseversion>
+    </library>
+</libraries>

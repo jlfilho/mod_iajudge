@@ -47,7 +47,32 @@ class language_helper {
             'c' => get_string('lang_c', 'qtype_codejudge'),
             'java' => get_string('lang_java', 'qtype_codejudge'),
             'javascript' => get_string('lang_javascript', 'qtype_codejudge'),
+            'portugol' => get_string('lang_portugol', 'qtype_codejudge'),
         ];
+    }
+
+    /**
+     * Returns descriptions for supported languages when extra student guidance is useful.
+     *
+     * @return array<string, string>
+     */
+    public static function get_descriptions(): array {
+        return [
+            'portugol' => get_string('langdesc_portugol', 'qtype_codejudge'),
+        ];
+    }
+
+    /**
+     * Returns a language-specific description.
+     *
+     * @param string $language Language key.
+     * @return string
+     */
+    public static function get_description(string $language): string {
+        $language = self::normalise($language);
+        $descriptions = self::get_descriptions();
+
+        return (string)($descriptions[$language] ?? '');
     }
 
     /**
