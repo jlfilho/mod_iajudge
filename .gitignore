@@ -1,5 +1,6 @@
-*.zip
-dist/
+#*.zip
+#dist/
+dist/package/
 node_modules/
 
 .SPEC.md
